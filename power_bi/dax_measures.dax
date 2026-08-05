@@ -1,0 +1,132 @@
+// =============================================================================
+// DAX MEASURES LIBRARY - E-COMMERCE SALES DASHBOARD & ANALYTICS
+// Author: Upendra Pal (github.com/upendrapal24)
+// Copy and paste these DAX measures into Power BI Desktop Model View
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SECTION 1: CORE EXECUTIVE SALES MEASURES
+// -----------------------------------------------------------------------------
+
+Total Revenue = 
+SUMX(
+    sales,
+    sales[final_price] * sales[units_sold]
+)
+
+Total Gross Revenue = 
+SUMX(
+    sales,
+    sales[price] * sales[units_sold]
+)
+
+Total Discount Loss = 
+SUMX(
+    sales,
+    (sales[price] - sales[final_price]) * sales[units_sold]
+)
+
+Total Units Sold = 
+SUM(sales[units_sold])
+
+Total Products Listed = 
+COUNTROWS(sales)
+
+Average Order Price = 
+AVERAGE(sales[final_price])
+
+Average List Price = 
+AVERAGE(sales[price])
+
+Average Discount Percent = 
+AVERAGE(sales[discount_percent])
+
+Average Product Rating = 
+AVERAGE(sales[rating])
+
+Average Seller Rating = 
+AVERAGE(sales[seller_rating])
+
+Average Delivery Days = 
+AVERAGE(sales[delivery_days])
+
+
+// -----------------------------------------------------------------------------
+// SECTION 2: RATIOS AND PERCENTAGES
+// -----------------------------------------------------------------------------
+
+Discount Loss Percentage = 
+DIVIDE([Total Discount Loss], [Total Gross Revenue], 0)
+
+Revenue Per Listed Product = 
+DIVIDE([Total Revenue], [Total Products Listed], 0)
+
+Units Sold Per Product = 
+DIVIDE([Total Units Sold], [Total Products Listed], 0)
+
+Returnable Product Ratio = 
+DIVIDE(
+    CALCULATE(COUNTROWS(sales), sales[is_returnable] = TRUE()),
+    COUNTROWS(sales),
+    0
+)
+
+
+// -----------------------------------------------------------------------------
+// SECTION 3: PERFORMANCE SEGMENTATION & INVENTORY
+// -----------------------------------------------------------------------------
+
+Best Seller Product Count = 
+CALCULATE(
+    COUNTROWS(sales),
+    sales[performance_segment] = "Best-Seller"
+)
+
+Underperformer Product Count = 
+CALCULATE(
+    COUNTROWS(sales),
+    sales[performance_segment] = "Underperformer"
+)
+
+Underperformer Inventory Units = 
+CALCULATE(
+    SUM(sales[stock_available]),
+    sales[performance_segment] = "Underperformer"
+)
+
+Total Stock Available = 
+SUM(sales[stock_available])
+
+Stock-to-Sales Ratio = 
+DIVIDE([Total Stock Available], [Total Units Sold], 0)
+
+
+// -----------------------------------------------------------------------------
+// SECTION 4: ADVANCED RANKING & CONDITIONAL METRICS
+// -----------------------------------------------------------------------------
+
+Seller Revenue Rank = 
+RANKX(
+    ALLSELECTED(sales[seller]),
+    [Total Revenue],
+    ,
+    DESC,
+    Dense
+)
+
+Category Revenue Share = 
+DIVIDE(
+    [Total Revenue],
+    CALCULATE([Total Revenue], ALL(sales[category])),
+    0
+)
+
+Deep Discount Revenue Share = 
+DIVIDE(
+    CALCULATE([Total Revenue], sales[discount_tier] = "Deep Discount (>40%)"),
+    [Total Revenue],
+    0
+)
+
+Top Seller Flag = 
+IF([Seller Revenue Rank] <= 5, "Top 5 Seller", "Standard Seller")

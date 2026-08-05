@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Sales Power BI Interactive Dashboard</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.85);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.3);
+            --secondary: #818cf8;
+            --accent-green: #34d399;
+            --accent-red: #f87171;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 24px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .badge {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover, .tab-btn.active {
+            background: var(--primary);
+            color: #000;
+            font-weight: 600;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+        
+        .kpi-title {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: var(--accent-green);
+            margin-top: 6px;
+        }
+        
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 992px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .chart-card h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+        
+        .canvas-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Table Design */
+        .table-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        tr:hover {
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <h1>E-commerce Sales & Analytics Power BI Dashboard</h1>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Created by <strong>Upendra Pal</strong> | Executive Performance Preview & Dynamic Visualizer</p>
+        </div>
+        <div class="badge">Author: Upendra Pal</div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('overview')">1. Sales Overview</button>
+        <button class="tab-btn" onclick="switchTab('products')">2. Product Performance</button>
+        <button class="tab-btn" onclick="switchTab('discounts')">3. Price & Discounts</button>
+        <button class="tab-btn" onclick="switchTab('sellers')">4. Seller Metrics</button>
+    </div>
+
+    <!-- TAB 1: SALES OVERVIEW -->
+    <div id="tab-overview" class="tab-content active">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Revenue</div>
+                <div class="kpi-value">$4.76 Trillion</div>
+                <div class="kpi-subtext">Across 80,000 SKUs</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Total Units Sold</div>
+                <div class="kpi-value">200.6 Million</div>
+                <div class="kpi-subtext">Avg 2,507 units/product</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Average Order Price</div>
+                <div class="kpi-value">$23,738</div>
+                <div class="kpi-subtext">Net after discounts</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Gross Discount Loss</div>
+                <div class="kpi-value">$1.29 Trillion</div>
+                <div class="kpi-subtext" style="color: var(--accent-red)">21.35% Average Discount</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Revenue by Category ($ Billions)</h3>
+                <div class="canvas-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Revenue by Payment Mode ($ Billions)</h3>
+                <div class="canvas-container">
+                    <canvas id="paymentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: PRODUCT PERFORMANCE -->
+    <div id="tab-products" class="tab-content">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Listed SKUs</div>
+                <div class="kpi-value">80,000</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Best-Seller SKUs</div>
+                <div class="kpi-value" style="color: var(--accent-green)">16,011</div>
+                <div class="kpi-subtext">Top 20% by Volume</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Underperformer SKUs</div>
+                <div class="kpi-value" style="color: var(--accent-red)">16,008</div>
+                <div class="kpi-subtext">Bottom 20% by Volume</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Stranded Inventory Units</div>
+                <div class="kpi-value">8.0 Million</div>
+                <div class="kpi-subtext">Underperforming Stock</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3 style="margin-bottom: 16px;">Top 10 Star Products (Best Sellers by Revenue)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Seller</th>
+                        <th>Price ($)</th>
+                        <th>Final Price ($)</th>
+                        <th>Units Sold</th>
+                        <th>Total Revenue ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>FKP0011085</td><td>Nike Series 426</td><td>Beauty</td><td>QuickShop</td><td>$59,711.08</td><td>$59,711.08</td><td>4,964</td><td style='color:var(--accent-green); font-weight:600;'>$296,405,801.12</td></tr><tr><td>FKP0011726</td><td>Whirlpool Prime 29</td><td>Beauty</td><td>UrbanRetails</td><td>$59,175.48</td><td>$59,175.48</td><td>4,992</td><td style='color:var(--accent-green); font-weight:600;'>$295,403,996.16</td></tr><tr><td>FKP0010881</td><td>LG Model 366</td><td>Electronics</td><td>ValueKart</td><td>$59,186.39</td><td>$59,186.39</td><td>4,978</td><td style='color:var(--accent-green); font-weight:600;'>$294,629,849.42</td></tr><tr><td>FKP0079234</td><td>HP Edition 280</td><td>Beauty</td><td>SmartDeals</td><td>$57,711.63</td><td>$57,711.63</td><td>4,977</td><td style='color:var(--accent-green); font-weight:600;'>$287,230,782.51</td></tr><tr><td>FKP0060942</td><td>Prestige Series 964</td><td>Sports</td><td>QuickShop</td><td>$58,922.68</td><td>$58,922.68</td><td>4,866</td><td style='color:var(--accent-green); font-weight:600;'>$286,717,760.88</td></tr><tr><td>FKP0075335</td><td>Nike Series 241</td><td>Fashion</td><td>QuickShop</td><td>$58,352.26</td><td>$58,352.26</td><td>4,912</td><td style='color:var(--accent-green); font-weight:600;'>$286,626,301.12</td></tr><tr><td>FKP0075535</td><td>Prestige Series 397</td><td>Toys</td><td>MegaStore</td><td>$59,881.66</td><td>$59,881.66</td><td>4,779</td><td style='color:var(--accent-green); font-weight:600;'>$286,174,453.14</td></tr><tr><td>FKP0058431</td><td>Whirlpool Series 987</td><td>Appliances</td><td>UrbanRetails</td><td>$59,228.17</td><td>$59,228.17</td><td>4,781</td><td style='color:var(--accent-green); font-weight:600;'>$283,169,880.77</td></tr><tr><td>FKP0060766</td><td>LG Series 64</td><td>Mobiles</td><td>QuickShop</td><td>$59,502.67</td><td>$59,502.67</td><td>4,753</td><td style='color:var(--accent-green); font-weight:600;'>$282,816,190.51</td></tr><tr><td>FKP0043005</td><td>Boat Prime 637</td><td>Beauty</td><td>BestBuy</td><td>$56,886.79</td><td>$56,886.79</td><td>4,968</td><td style='color:var(--accent-green); font-weight:600;'>$282,613,572.72</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 3: PRICE & DISCOUNTS -->
+    <div id="tab-discounts" class="tab-content">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Average Discount %</div>
+                <div class="kpi-value">21.35%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Low Discount Share (0-10%)</div>
+                <div class="kpi-value" style="color: var(--accent-green)">45.07%</div>
+                <div class="kpi-subtext">$2.15T Revenue</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Deep Discount Share (>40%)</div>
+                <div class="kpi-value" style="color: var(--accent-red)">8.05%</div>
+                <div class="kpi-subtext">$383.3B Revenue</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Revenue Contribution by Discount Tier ($ Billions)</h3>
+                <div class="canvas-container">
+                    <canvas id="discountChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Average Sales Volume per SKU by Discount Tier</h3>
+                <div class="canvas-container">
+                    <canvas id="discountVolumeChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: SELLER METRICS -->
+    <div id="tab-sellers" class="tab-content">
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-title">Marketplace Sellers</div>
+                <div class="kpi-value">8 Active Sellers</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Top Seller Share</div>
+                <div class="kpi-value" style="color: var(--primary)">12.69%</div>
+                <div class="kpi-subtext">UrbanRetails ($604B)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Average Seller Rating</div>
+                <div class="kpi-value">4.00 / 5.00</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card" style="grid-column: span 2;">
+                <h3>Seller Revenue Leaderboard ($ Billions)</h3>
+                <div class="canvas-container">
+                    <canvas id="sellerChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Data from python
+        const catData = [{"category": "Appliances", "revenue": 594060346834.73, "units": 25184186}, {"category": "Beauty", "revenue": 605815988795.83, "units": 25129312}, {"category": "Electronics", "revenue": 599487883202.69, "units": 25372487}, {"category": "Fashion", "revenue": 599555915966.14, "units": 25182630}, {"category": "Home & Kitchen", "revenue": 583158043408.51, "units": 24663953}, {"category": "Mobiles", "revenue": 584330925504.2, "units": 24710378}, {"category": "Sports", "revenue": 589050280695.13, "units": 24792347}, {"category": "Toys", "revenue": 606448572518.21, "units": 25565969}];
+        const sellerData = [{"seller": "UrbanRetails", "revenue": 604370020064.07, "units": 25330100, "rating": 4.008920234429324}, {"seller": "QuickShop", "revenue": 601468622045.6, "units": 25181220, "rating": 4.003990986479719}, {"seller": "BestBuy", "revenue": 596474839547.86, "units": 25241641, "rating": 4.008672344689379}, {"seller": "SuperMart", "revenue": 595337916841.55, "units": 25135503, "rating": 3.998739454094293}, {"seller": "ValueKart", "revenue": 594873081085.93, "units": 25197675, "rating": 3.999274903551291}, {"seller": "MegaStore", "revenue": 593756141745.34, "units": 25153095, "rating": 3.995456454354564}, {"seller": "SmartDeals", "revenue": 588142705540.79, "units": 24670820, "rating": 3.9997734430559784}, {"seller": "RetailHub", "revenue": 587484630054.3, "units": 24691208, "rating": 4.00291046277666}];
+        const discData = [{"discount_tier": "Deep Discount (>40%)", "revenue": 383346887325.75, "units": 25354746, "count": 10052, "loss": 383346886804.39}, {"discount_tier": "High (26-40%)", "revenue": 985463172768.82, "units": 50486369, "count": 20150, "loss": 530993948212.82}, {"discount_tier": "Low (0-10%)", "revenue": 2146533397572.1, "units": 74956898, "count": 29855, "loss": 113038794101.97}, {"discount_tier": "Moderate (11-25%)", "revenue": 1246564499258.77, "units": 49803249, "count": 19943, "loss": 264371108096.88}];
+        const paymentData = [{"payment_modes": "CARD,Wallet", "revenue": 1190457832857.65, "units": 50348210}, {"payment_modes": "COD,CARD", "revenue": 1180931111305.21, "units": 49991256}, {"payment_modes": "COD,UPI,CARD", "revenue": 1187427525810.07, "units": 50016289}, {"payment_modes": "UPI,CARD", "revenue": 1203091486952.51, "units": 50245507}];
+
+        // Category Chart
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'bar',
+            data: {
+                labels: catData.map(d => d.category),
+                datasets: [{
+                    label: 'Revenue ($ Billions)',
+                    data: catData.map(d => (d.revenue / 1e9).toFixed(2)),
+                    backgroundColor: '#38bdf8',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Payment Chart
+        new Chart(document.getElementById('paymentChart'), {
+            type: 'doughnut',
+            data: {
+                labels: paymentData.map(d => d.payment_modes),
+                datasets: [{
+                    data: paymentData.map(d => (d.revenue / 1e9).toFixed(2)),
+                    backgroundColor: ['#38bdf8', '#818cf8', '#34d399', '#f87171']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#f8fafc' } } }
+            }
+        });
+
+        // Discount Revenue Chart
+        new Chart(document.getElementById('discountChart'), {
+            type: 'bar',
+            data: {
+                labels: discData.map(d => d.discount_tier),
+                datasets: [{
+                    label: 'Total Revenue ($ Billions)',
+                    data: discData.map(d => (d.revenue / 1e9).toFixed(2)),
+                    backgroundColor: ['#34d399', '#38bdf8', '#818cf8', '#f87171'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Discount Volume Chart
+        new Chart(document.getElementById('discountVolumeChart'), {
+            type: 'line',
+            data: {
+                labels: discData.map(d => d.discount_tier),
+                datasets: [{
+                    label: 'Avg Units Sold / SKU',
+                    data: discData.map(d => (d.units / d.count).toFixed(1)),
+                    borderColor: '#818cf8',
+                    backgroundColor: 'rgba(129, 140, 248, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#f8fafc' } } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Seller Leaderboard Chart
+        new Chart(document.getElementById('sellerChart'), {
+            type: 'bar',
+            data: {
+                labels: sellerData.map(d => d.seller),
+                datasets: [{
+                    label: 'Total Revenue ($ Billions)',
+                    data: sellerData.map(d => (d.revenue / 1e9).toFixed(2)),
+                    backgroundColor: '#818cf8',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
